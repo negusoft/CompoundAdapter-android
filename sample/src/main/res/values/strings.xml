@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">CompoundAdapter</string>
-    <string name="sample_title">CompoundAdapter</string>
+    <string name="sample_list_title">CompoundAdapter Samples</string>
+
+    <!-- Sample types -->
+    <string name="sample_adapter_group_with_header">AdapterGroup with header</string>
 </resources>
