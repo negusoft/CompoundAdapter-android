@@ -90,7 +90,8 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     @Override
     public int getItemViewType(int position) {
         AdapterHolder adapterHolder = getAdapterForIndex(position);
-        int innerViewType = adapterHolder.adapter.getItemViewType(position);
+        int innerPossition = adapterHolder.mapPosition(position);
+        int innerViewType = adapterHolder.adapter.getItemViewType(innerPossition);
         int outerViewType = adapterHolder.in2outMapping.get(innerViewType, 0);
         if (outerViewType != 0)
             return outerViewType;

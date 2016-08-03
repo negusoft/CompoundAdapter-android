@@ -3,36 +3,28 @@ package com.negusoft.compoundadapter.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.negusoft.compoundadapter.R;
 import com.negusoft.compoundadapter.adapter.HeaderAdapter;
 import com.negusoft.compoundadapter.adapter.SampleDataAdapter;
+import com.negusoft.compoundadapter.adapter.TreeNodeAdapter;
 import com.negusoft.compountadapter.recyclerview.AdapterGroup;
 
-import org.w3c.dom.Text;
+public class AdapterGroupTreeFragment extends Fragment {
 
-public class AdapterGroupWithHeaderFragment extends Fragment {
-
-    public static AdapterGroupWithHeaderFragment newInstance() {
-        return new AdapterGroupWithHeaderFragment();
+    public static AdapterGroupTreeFragment newInstance() {
+        return new AdapterGroupTreeFragment();
     }
 
     private RecyclerView mRecyclerView;
     private AdapterGroup mAdapterGroup;
-    private SampleDataAdapter mSampleDataAdapter;
-    private HeaderAdapter mHeaderAdapter;
+    private TreeNodeAdapter mTreeNodeAdapter;
 
     @Nullable
     @Override
@@ -42,13 +34,21 @@ public class AdapterGroupWithHeaderFragment extends Fragment {
         Context c = getActivity().getApplicationContext();
         mRecyclerView = ((RecyclerView)result.findViewById(R.id.recyclerview));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(c));
-        getActivity().setTitle(R.string.sample_adapter_group_with_header);
+        getActivity().setTitle(R.string.sample_adapter_group_tree);
 
-        mHeaderAdapter = new HeaderAdapter(getString(R.string.sample_list_title));
-        mSampleDataAdapter = new SampleDataAdapter();
+        mTreeNodeAdapter = new TreeNodeAdapter(getString(R.string.sample_list_title));
+        TreeNodeAdapter one = mTreeNodeAdapter.addNode("1 - ONE");
+        one.addNode("1.1 - A");
+        one.addNode("1.2 - B");
+        one.addNode("1.3 - C");
+
+        TreeNodeAdapter two = mTreeNodeAdapter.addNode("2 - TWO");
+        two.addNode("2.1 - A");
+        two.addNode("2.2 - B");
+        two.addNode("2.3 - C");
+
         mAdapterGroup = new AdapterGroup();
-        mAdapterGroup.addAdapter(mHeaderAdapter);
-        mAdapterGroup.addAdapter(mSampleDataAdapter);
+        mAdapterGroup.addAdapter(mTreeNodeAdapter);
         mRecyclerView.setAdapter(mAdapterGroup);
 
         return result;

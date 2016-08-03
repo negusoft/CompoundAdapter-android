@@ -24,6 +24,16 @@
             style="@style/CompoundAdapter.MainListItem"
             />
 
+        <TextView
+            android:id="@+id/adapterGroupTree"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sample_adapter_group_tree"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            style="@style/CompoundAdapter.MainListItem"
+            />
+
     </LinearLayout>
 
 </android.support.v4.widget.NestedScrollView>

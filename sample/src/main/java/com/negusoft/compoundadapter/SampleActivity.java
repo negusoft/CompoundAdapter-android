@@ -11,6 +11,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.negusoft.compoundadapter.fragment.AdapterGroupTreeFragment;
 import com.negusoft.compoundadapter.fragment.AdapterGroupWithHeaderFragment;
 import com.negusoft.compoundadapter.fragment.MainListFragment;
 
@@ -19,7 +20,8 @@ public class SampleActivity extends AppCompatActivity {
     private static String EXTRA_SAMPLE_TYPE = "EXTRA_SAMPLE_TYPE";
 
     public enum SampleType {
-        ADAPTER_GROUP_WITH_HEADER
+        ADAPTER_GROUP_WITH_HEADER,
+        ADAPTER_GROUP_TREE
     }
 
     public static Intent makeIntent(Context c, SampleType sampleType) {
@@ -58,6 +60,9 @@ public class SampleActivity extends AppCompatActivity {
         switch (type) {
             case ADAPTER_GROUP_WITH_HEADER:
                 addFragment(AdapterGroupWithHeaderFragment.newInstance());
+                break;
+            case ADAPTER_GROUP_TREE:
+                addFragment(AdapterGroupTreeFragment.newInstance());
                 break;
         }
     }
