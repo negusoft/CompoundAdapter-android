@@ -16,7 +16,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     private LinkedHashMap<RecyclerView.Adapter, AdapterHolder> mAdapterHolders = new LinkedHashMap<>();
 
-    // Links that view type ids with the correspongind adapter holder.
+    // Links the view type ids with the corresponding adapter holder.
     private SparseArray<AdapterHolder> mViewTypeMapping = new SparseArray<>();
 
     private boolean mIndexingRequired = true;
@@ -25,6 +25,9 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     private ViewTypeGenerator mViewTypeGenerator = new ViewTypeGenerator(1);
 
+    /**
+     * Add the given adapter.
+     */
     public void addAdapter(RecyclerView.Adapter adapter) {
         AdapterHolder holder = new AdapterHolder(adapter);
         if (mAdapterHolders.containsKey(adapter))
@@ -41,10 +44,16 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         notifyDataSetChanged();
     }
 
+    /**
+     * @return True if the adapter is part of this adapter group. False otherwise.
+     */
     public boolean containsAdapter(RecyclerView.Adapter adapter) {
         return mAdapterHolders.containsKey(adapter);
     }
 
+    /**
+     * Remove the given adapter.
+     */
     public void removeAdapter(RecyclerView.Adapter adapter) {
         AdapterHolder removedHolder = mAdapterHolders.remove(adapter);
         if (removedHolder == null)
@@ -122,7 +131,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    public void updateIndexing() {
+    private void updateIndexing() {
         if (!mIndexingRequired)
             return;
 
