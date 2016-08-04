@@ -77,8 +77,8 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         AdapterHolder adapterHolder = getAdapterForIndex(position);
-        int innerPossition = adapterHolder.mapPosition(position);
-        adapterHolder.adapter.onBindViewHolder(holder, innerPossition);
+        int innerPosition = adapterHolder.mapPosition(position);
+        adapterHolder.adapter.onBindViewHolder(holder, innerPosition);
     }
 
     @Override
@@ -90,8 +90,8 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     @Override
     public int getItemViewType(int position) {
         AdapterHolder adapterHolder = getAdapterForIndex(position);
-        int innerPossition = adapterHolder.mapPosition(position);
-        int innerViewType = adapterHolder.adapter.getItemViewType(innerPossition);
+        int innerPosition = adapterHolder.mapPosition(position);
+        int innerViewType = adapterHolder.adapter.getItemViewType(innerPosition);
         int outerViewType = adapterHolder.in2outMapping.get(innerViewType, 0);
         if (outerViewType != 0)
             return outerViewType;
@@ -108,8 +108,8 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     @Override
     public long getItemId(int position) {
         AdapterHolder adapterHolder = getAdapterForIndex(position);
-        int innerPossition = adapterHolder.mapPosition(position);
-        return adapterHolder.adapter.getItemId(innerPossition);
+        int innerPosition = adapterHolder.mapPosition(position);
+        return adapterHolder.adapter.getItemId(innerPosition);
     }
 
     @Override
@@ -192,7 +192,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         int startPosition = -1;
         int count = -1;
 
-        // Mappings from outter to inner view types and vice versa.
+        // Mappings from outer to inner view types and vice versa.
         SparseIntArray in2outMapping = new SparseIntArray();
         SparseIntArray out2inMapping = new SparseIntArray();
 
