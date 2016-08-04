@@ -67,6 +67,18 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         notifyDataSetChanged();
     }
 
+    /**
+     * Returns the adapter at the given position along with the mapped position
+     */
+    public AdapterPosition getAdapterAtPosition(int position) {
+        updateIndexing();
+
+        AdapterHolder holder = getAdapterForIndex(position);
+        int index = holder.mapPosition(position);
+
+        return new AdapterPosition(holder.adapter, index);
+    }
+
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         AdapterHolder adapterHolder = mViewTypeMapping.get(viewType);

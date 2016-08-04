@@ -9,12 +9,14 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.negusoft.compoundadapter.R;
 import com.negusoft.compoundadapter.adapter.HeaderAdapter;
 import com.negusoft.compoundadapter.adapter.SampleDataAdapter;
 import com.negusoft.compoundadapter.adapter.TreeNodeAdapter;
 import com.negusoft.compountadapter.recyclerview.AdapterGroup;
+import com.negusoft.compountadapter.recyclerview.AdapterPosition;
 
 public class AdapterGroupTreeFragment extends Fragment {
 
@@ -36,7 +38,7 @@ public class AdapterGroupTreeFragment extends Fragment {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(c));
         getActivity().setTitle(R.string.sample_adapter_group_tree);
 
-        mTreeNodeAdapter = new TreeNodeAdapter(getString(R.string.sample_list_title));
+        mTreeNodeAdapter = new TreeNodeAdapter(getString(R.string.sample_list_title), mListener);
         TreeNodeAdapter one = mTreeNodeAdapter.addNode("1 - ONE");
         one.addNode("1.1 - A");
         one.addNode("1.2 - B");
@@ -53,4 +55,26 @@ public class AdapterGroupTreeFragment extends Fragment {
 
         return result;
     }
+
+    TreeNodeAdapter.ItemClickListener mListener = new TreeNodeAdapter.ItemClickListener() {
+        @Override
+        public void onItemClick(int position) {
+            // Construct as string with the relative position in each level of the hierarchy
+            String message = "Position: ";
+            AdapterGroup currentAdapter = mAdapterGroup;
+            int currentPosition = position;
+            while (true) {
+                message += "-" + currentPosition;
+                AdapterPosition adapterPosition = currentAdapter.getAdapterAtPosition(currentPosition);
+                if (adapterPosition.adapter instanceof AdapterGroup) {
+                    currentAdapter = (AdapterGroup)adapterPosition.adapter;
+                    currentPosition = adapterPosition.position;
+                } else {
+                    break;
+                }
+            }
+
+            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+        }
+    };
 }
