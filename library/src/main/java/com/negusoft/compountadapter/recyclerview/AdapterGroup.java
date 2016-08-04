@@ -70,7 +70,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         AdapterHolder adapterHolder = mViewTypeMapping.get(viewType);
-        int innerViewType = adapterHolder.out2inMapping.get(viewType);
+        int innerViewType = adapterHolder.getInnerViewType(viewType);
         return adapterHolder.adapter.onCreateViewHolder(parent, innerViewType);
     }
 
@@ -92,17 +92,8 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         AdapterHolder adapterHolder = getAdapterForIndex(position);
         int innerPosition = adapterHolder.mapPosition(position);
         int innerViewType = adapterHolder.adapter.getItemViewType(innerPosition);
-        int outerViewType = adapterHolder.in2outMapping.get(innerViewType, 0);
-        if (outerViewType != 0)
-            return outerViewType;
 
-        // The view type is not mapped -> generate a outer view type
-        outerViewType = mViewTypeGenerator.getNext();
-        adapterHolder.in2outMapping.put(innerViewType, outerViewType);
-        adapterHolder.out2inMapping.put(outerViewType, innerViewType);
-        mViewTypeMapping.put(outerViewType, adapterHolder);
-
-        return outerViewType;
+        return adapterHolder.getOuterViewType(innerViewType);
     }
 
     @Override
@@ -187,7 +178,8 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     /** Represents an inner Adapter along info related to it. */
     class AdapterHolder {
-        RecyclerView.Adapter adapter;
+        final RecyclerView.Adapter adapter;
+
         AdapterHolderDataObserver dataObserver;
         int startPosition = -1;
         int count = -1;
@@ -224,6 +216,32 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             adapter.unregisterAdapterDataObserver(dataObserver);
             dataObserver = null;
         }
+
+        int getOuterViewType(int innerViewType) {
+            int outerViewType = in2outMapping.get(innerViewType, 0);
+            if (outerViewType != 0)
+                return outerViewType;
+
+            // The view type is not mapped -> generate a outer view type
+            outerViewType = mViewTypeGenerator.getNext();
+            in2outMapping.put(innerViewType, outerViewType);
+            out2inMapping.put(outerViewType, innerViewType);
+
+            // Link the generated view type to this adapter holder
+            mViewTypeMapping.put(outerViewType, this);
+
+            return outerViewType;
+        }
+
+        int getInnerViewType(int outerViewType) {
+            return out2inMapping.get(outerViewType);
+        }
+    }
+
+    /** Maps from outer to inner view types and vice versa. **/
+    class ViewTypeMapping {
+        private SparseIntArray in2outMapping = new SparseIntArray();
+        private SparseIntArray out2inMapping = new SparseIntArray();
     }
 
     /** AdapterDataObserver for each of the Adapters in order to forward changes to the parent. */
