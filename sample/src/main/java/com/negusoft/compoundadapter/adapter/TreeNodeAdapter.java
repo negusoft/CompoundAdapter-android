@@ -3,6 +3,7 @@ package com.negusoft.compoundadapter.adapter;
 import android.content.Context;
 import android.content.res.Resources;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -83,6 +84,9 @@ public class TreeNodeAdapter extends AdapterGroup {
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
             View view = inflater.inflate(R.layout.item_content, parent, false);
+
+            Log.d(NodeItemAdapter.class.toString(), "NodeItemAdapter created.");
+
             return new ViewHolder(view);
         }
 

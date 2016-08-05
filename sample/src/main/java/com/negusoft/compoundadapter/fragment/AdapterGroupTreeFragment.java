@@ -39,15 +39,17 @@ public class AdapterGroupTreeFragment extends Fragment {
         getActivity().setTitle(R.string.sample_adapter_group_tree);
 
         mTreeNodeAdapter = new TreeNodeAdapter(getString(R.string.sample_list_title), mListener);
-        TreeNodeAdapter one = mTreeNodeAdapter.addNode("1 - ONE");
-        one.addNode("1.1 - A");
-        one.addNode("1.2 - B");
-        one.addNode("1.3 - C");
 
-        TreeNodeAdapter two = mTreeNodeAdapter.addNode("2 - TWO");
-        two.addNode("2.1 - A");
-        two.addNode("2.2 - B");
-        two.addNode("2.3 - C");
+        for (int i=1; i<=50; i++) {
+            TreeNodeAdapter one = mTreeNodeAdapter.addNode(String.format("%d - NODE", i));
+            one.addNode(String.format("%d.1 - A", i));
+            one.addNode(String.format("%d.2 - B", i));
+            one.addNode(String.format("%d.3 - C", i));
+            one.addNode(String.format("%d.4 - D", i));
+            one.addNode(String.format("%d.5 - E", i));
+            one.addNode(String.format("%d.6 - F", i));
+            one.addNode(String.format("%d.7 - G", i));
+        }
 
         mAdapterGroup = new AdapterGroup();
         mAdapterGroup.addAdapter(mTreeNodeAdapter);

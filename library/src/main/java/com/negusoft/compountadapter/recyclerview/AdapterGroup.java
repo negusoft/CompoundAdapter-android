@@ -1,13 +1,19 @@
 package com.negusoft.compountadapter.recyclerview;
 
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.view.ViewGroup;
 
 import java.security.InvalidParameterException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * An adapter made out of adapters.
@@ -16,8 +22,8 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     private LinkedHashMap<RecyclerView.Adapter, AdapterHolder> mAdapterHolders = new LinkedHashMap<>();
 
-    // Links the view type ids with the corresponding adapter holder.
-    private SparseArray<AdapterHolder> mViewTypeMapping = new SparseArray<>();
+    private Map<String, AdaptersByType> mAdapterTypes = new HashMap<>();
+    private SparseArray<AdaptersByType> mAdapterTypesByViewType = new SparseArray<>();
 
     private boolean mIndexingRequired = true;
     private int mTotalCount = 0;
@@ -29,7 +35,19 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
      * Add the given adapter.
      */
     public void addAdapter(RecyclerView.Adapter adapter) {
-        AdapterHolder holder = new AdapterHolder(adapter);
+        addAdapter(adapter, null);
+    }
+
+    /**
+     * Add the given adapter.
+     * @param adapterType Adapters of the same type reuse each others ViewHolders. By default,
+     *                    adapters are grouped by class.
+     */
+    public void addAdapter(RecyclerView.Adapter adapter, @Nullable String adapterType) {
+        if (adapterType == null)
+            adapterType = adapter.getClass().toString();
+
+        AdapterHolder holder = new AdapterHolder(adapter, adapterType);
         if (mAdapterHolders.containsKey(adapter))
             throw new InvalidParameterException("The adapter is already present in the CompoundAdapter");
         mAdapterHolders.put(adapter, holder);
@@ -81,9 +99,11 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        AdapterHolder adapterHolder = mViewTypeMapping.get(viewType);
-        int innerViewType = adapterHolder.getInnerViewType(viewType);
-        return adapterHolder.adapter.onCreateViewHolder(parent, innerViewType);
+        AdaptersByType adaptersByType = mAdapterTypesByViewType.get(viewType);
+        int innerViewType = adaptersByType.getInnerViewType(viewType);
+        RecyclerView.Adapter adapter = adaptersByType.adapters.iterator().next();
+
+        return adapter.onCreateViewHolder(parent, innerViewType);
     }
 
     @Override
@@ -101,11 +121,33 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public int getItemViewType(int position) {
+        return getItemViewType(position, mAdapterTypes, mAdapterTypesByViewType, mViewTypeGenerator);
+    }
+
+    private int getItemViewType(int position, Map<String, AdaptersByType> adapterTypes, SparseArray<AdaptersByType> adapterTypesByViewType, ViewTypeGenerator viewTypeGenerator) {
         AdapterHolder adapterHolder = getAdapterForIndex(position);
         int innerPosition = adapterHolder.mapPosition(position);
-        int innerViewType = adapterHolder.adapter.getItemViewType(innerPosition);
 
-        return adapterHolder.getOuterViewType(innerViewType);
+        // IF the adapter is AdapterGroup -> dive into the sub-adapters
+        if (adapterHolder.adapter instanceof AdapterGroup) {
+            return ((AdapterGroup)adapterHolder.adapter).getItemViewType(innerPosition, adapterTypes, adapterTypesByViewType, viewTypeGenerator);
+        }
+
+        // Add the view type mapping in the corresponding adapter type group
+        int innerViewType = adapterHolder.adapter.getItemViewType(innerPosition);
+        AdaptersByType adapterGroupsByType = adapterTypes.get(adapterHolder.adapterType);
+        if (adapterGroupsByType == null) {
+            adapterGroupsByType = new AdaptersByType(viewTypeGenerator);
+            adapterTypes.put(adapterHolder.adapterType, adapterGroupsByType);
+        }
+        if (!adapterGroupsByType.adapters.contains(adapterHolder.adapter)) {
+            adapterGroupsByType.adapters.add(adapterHolder.adapter);
+        }
+
+        int outerViewType = adapterGroupsByType.getOuterViewType(innerViewType);
+        adapterTypesByViewType.put(outerViewType, adapterGroupsByType);
+
+        return outerViewType;
     }
 
     @Override
@@ -191,17 +233,15 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     /** Represents an inner Adapter along info related to it. */
     class AdapterHolder {
         final RecyclerView.Adapter adapter;
+        final String adapterType;
 
         AdapterHolderDataObserver dataObserver;
         int startPosition = -1;
         int count = -1;
 
-        // Mappings from outer to inner view types and vice versa.
-        SparseIntArray in2outMapping = new SparseIntArray();
-        SparseIntArray out2inMapping = new SparseIntArray();
-
-        AdapterHolder(RecyclerView.Adapter adapter) {
+        AdapterHolder(RecyclerView.Adapter adapter, String adapterType) {
             this.adapter = adapter;
+            this.adapterType = adapterType;
         }
 
         int updateIndex(int position) {
@@ -228,32 +268,41 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             adapter.unregisterAdapterDataObserver(dataObserver);
             dataObserver = null;
         }
+    }
+
+    /** Maps from outer to inner view types and vice versa. */
+    class ViewTypeMapping {
+        private SparseIntArray in2outMapping = new SparseIntArray();
+        private SparseIntArray out2inMapping = new SparseIntArray();
+    }
+
+    /** A set of AdapterGroups of the same type, which share the view type mapping. */
+    class AdaptersByType {
+        // Use weak references for the set of adapters.
+        final Set<RecyclerView.Adapter> adapters = Collections.newSetFromMap(new WeakHashMap<RecyclerView.Adapter, Boolean>(2));;
+        final ViewTypeMapping viewTypeMapping = new ViewTypeMapping();
+        final ViewTypeGenerator viewTypeGenerator;
+
+        AdaptersByType(ViewTypeGenerator viewTypeGenerator) {
+            this.viewTypeGenerator = viewTypeGenerator;
+        }
 
         int getOuterViewType(int innerViewType) {
-            int outerViewType = in2outMapping.get(innerViewType, 0);
+            int outerViewType = viewTypeMapping.in2outMapping.get(innerViewType, 0);
             if (outerViewType != 0)
                 return outerViewType;
 
             // The view type is not mapped -> generate a outer view type
-            outerViewType = mViewTypeGenerator.getNext();
-            in2outMapping.put(innerViewType, outerViewType);
-            out2inMapping.put(outerViewType, innerViewType);
-
-            // Link the generated view type to this adapter holder
-            mViewTypeMapping.put(outerViewType, this);
+            outerViewType = viewTypeGenerator.getNext();
+            viewTypeMapping.in2outMapping.put(innerViewType, outerViewType);
+            viewTypeMapping.out2inMapping.put(outerViewType, innerViewType);
 
             return outerViewType;
         }
 
         int getInnerViewType(int outerViewType) {
-            return out2inMapping.get(outerViewType);
+            return viewTypeMapping.out2inMapping.get(outerViewType);
         }
-    }
-
-    /** Maps from outer to inner view types and vice versa. **/
-    class ViewTypeMapping {
-        private SparseIntArray in2outMapping = new SparseIntArray();
-        private SparseIntArray out2inMapping = new SparseIntArray();
     }
 
     /** AdapterDataObserver for each of the Adapters in order to forward changes to the parent. */
