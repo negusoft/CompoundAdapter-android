@@ -12,27 +12,33 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.negusoft.compoundadapter.R;
+import com.negusoft.compoundadapter.adapter.DynamicDataAdapter;
 import com.negusoft.compoundadapter.adapter.HeaderAdapter;
-import com.negusoft.compoundadapter.adapter.StaticDataAdapter;
 import com.negusoft.compoundadapter.data.Samples;
 import com.negusoft.compountadapter.recyclerview.AdapterGroup;
 
 /**
- * Simple AdapterGroup that contains a header with a single element and a list of static data.
+ * Display an adapter to which items can be added and remove. It is wrapped in a AdapterGroup along
+ * with a header adapter with one single element.
  */
-public class AdapterGroupWithHeaderFragment extends Fragment {
+public class AdapterGroupWithChangingData extends Fragment {
 
-    public static AdapterGroupWithHeaderFragment newInstance() {
-        return new AdapterGroupWithHeaderFragment();
+    public static AdapterGroupWithChangingData newInstance() {
+        return new AdapterGroupWithChangingData();
     }
 
     private RecyclerView mRecyclerView;
     private AdapterGroup mAdapterGroup;
-    private StaticDataAdapter mSampleDataAdapter;
+    private DynamicDataAdapter mDynamicDataAdapter;
     private HeaderAdapter mHeaderAdapter;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     @Nullable
     @Override
@@ -45,20 +51,39 @@ public class AdapterGroupWithHeaderFragment extends Fragment {
         getActivity().setTitle(R.string.sample_adapter_group_with_header);
 
         mHeaderAdapter = new HeaderAdapter(getString(R.string.sample_list_title));
-        mSampleDataAdapter = new StaticDataAdapter();
-        mSampleDataAdapter.setItemSelectedListener(new StaticDataAdapter.ItemSelectedListener() {
+        mDynamicDataAdapter = new DynamicDataAdapter();
+        mDynamicDataAdapter.setItemSelectedListener(new DynamicDataAdapter.ItemSelectedListener() {
             @Override
-            public void onItemSelected(String value) {
-                Toast.makeText(getActivity(), value, Toast.LENGTH_SHORT).show();
+            public void onItemSelected(DynamicDataAdapter.Item item) {
+                mDynamicDataAdapter.removeItem(item);
             }
         });
 
         mAdapterGroup = new AdapterGroup();
         mAdapterGroup.addAdapter(mHeaderAdapter);
-        mAdapterGroup.addAdapter(mSampleDataAdapter);
+        mAdapterGroup.addAdapter(mDynamicDataAdapter);
 
         mRecyclerView.setAdapter(mAdapterGroup);
 
         return result;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.adaptergroup_with_header, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.add) {
+            addItem();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void addItem() {
+        String value = Samples.getRandomSample();
+        mDynamicDataAdapter.addItem(value);
     }
 }

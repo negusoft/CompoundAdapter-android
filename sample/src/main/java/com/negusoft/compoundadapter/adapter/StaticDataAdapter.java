@@ -8,23 +8,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.negusoft.compoundadapter.R;
+import com.negusoft.compoundadapter.data.Samples;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * RecyclerView adapter displaying a static list of items
  */
-public class SampleDataAdapter extends RecyclerView.Adapter<SampleDataAdapter.ViewHolder> {
+public class StaticDataAdapter extends RecyclerView.Adapter<StaticDataAdapter.ViewHolder> {
 
-    private static final String[] VALUES = new String[] {
-            "ONE",
-            "TWO",
-            "THREE",
-            "FOUR",
-            "FIVE",
-            "SIX",
-            "SEVEN",
-            "EIGHT",
-            "NINE"
-    };
+    public interface ItemSelectedListener {
+        public void onItemSelected(String value);
+    }
 
     static final class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -44,22 +40,39 @@ public class SampleDataAdapter extends RecyclerView.Adapter<SampleDataAdapter.Vi
         void setText(String text) {
             textView.setText(text);
         }
+
+        String getText() {
+            return textView.getText().toString();
+        }
+    }
+
+    private ItemSelectedListener mItemSelectedListener;
+
+    public void setItemSelectedListener(ItemSelectedListener listener) {
+        mItemSelectedListener = listener;
     }
 
     @Override
-    public SampleDataAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public StaticDataAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View view = inflater.inflate(R.layout.item_content, parent, false);
-        return new SampleDataAdapter.ViewHolder(view);
+        return new StaticDataAdapter.ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(SampleDataAdapter.ViewHolder holder, int position) {
-        holder.setText(VALUES[position]);
+    public void onBindViewHolder(final StaticDataAdapter.ViewHolder holder, int position) {
+        holder.setText(Samples.VALUES[position]);
+        holder.textView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mItemSelectedListener != null)
+                    mItemSelectedListener.onItemSelected(holder.getText());
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return VALUES.length;
+        return Samples.VALUES.length;
     }
 }

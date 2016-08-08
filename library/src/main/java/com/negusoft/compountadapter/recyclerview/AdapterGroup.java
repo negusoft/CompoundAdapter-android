@@ -251,8 +251,14 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             return count;
         }
 
+        /** Map position: AdapterGroup -> child adapter */
         int mapPosition(int position) {
             return position - startPosition;
+        }
+
+        /** Map position: child adapter -> AdapterGroup */
+        int mapPositionInverse(int position) {
+            return position + startPosition;
         }
 
         void registerDataObserver() {
@@ -321,32 +327,32 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount) {
-            int innerPositionStart = holder.mapPosition(positionStart);
+            int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeChanged(innerPositionStart, itemCount);
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
-            int innerPositionStart = holder.mapPosition(positionStart);
+            int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeChanged(innerPositionStart, itemCount, payload);
         }
 
         @Override
         public void onItemRangeInserted(int positionStart, int itemCount) {
-            int innerPositionStart = holder.mapPosition(positionStart);
+            int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeInserted(innerPositionStart, itemCount);
         }
 
         @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
-            int innerPositionStart = holder.mapPosition(positionStart);
+            int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeRemoved(innerPositionStart, itemCount);
         }
 
         @Override
         public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-            // Find a more appropriate notification method ???
-            notifyDataSetChanged();
+            int innerPositionStart = holder.mapPositionInverse(fromPosition);
+            notifyItemRangeRemoved(innerPositionStart, itemCount);
         }
     }
 

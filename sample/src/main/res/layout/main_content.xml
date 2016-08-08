@@ -25,6 +25,16 @@
             />
 
         <TextView
+            android:id="@+id/adapterGroupWithChangingData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sample_adapter_group_with_changing_data"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            style="@style/CompoundAdapter.MainListItem"
+            />
+
+        <TextView
             android:id="@+id/adapterGroupTree"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
