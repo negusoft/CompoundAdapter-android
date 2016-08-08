@@ -15,6 +15,8 @@ import com.negusoft.compoundadapter.R;
 import com.negusoft.compountadapter.recyclerview.AdapterGroup;
 import com.negusoft.compountadapter.recyclerview.AdapterPosition;
 
+import java.util.Random;
+
 /** Adapter representing a node in a tree and allows adding/removing child nodes. */
 public class TreeNodeAdapter extends AdapterGroup {
 
@@ -23,6 +25,8 @@ public class TreeNodeAdapter extends AdapterGroup {
 
     // Text to be displayed for the node
     private final String mName;
+
+    private TreeNodeAdapter mParentNode;
 
     private ItemClickListener mListener;
 
@@ -42,7 +46,13 @@ public class TreeNodeAdapter extends AdapterGroup {
         TreeNodeAdapter node = new TreeNodeAdapter(mDepth + 1, name, mListener);
         addAdapter(node);
 
+        node.mParentNode = this;
+
         return node;
+    }
+
+    public TreeNodeAdapter getParentNode() {
+        return mParentNode;
     }
 
     public interface ItemClickListener {
@@ -68,12 +78,23 @@ public class TreeNodeAdapter extends AdapterGroup {
             textView.setText(text);
         }
 
-        public void setListener(final ItemClickListener listener) {
+        public void setClickListener(final ItemClickListener listener) {
             textView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (listener != null)
-                    listener.onItemClick(getAdapterPosition());
+                        listener.onItemClick(getAdapterPosition());
+                }
+            });
+        }
+
+        public void setLongCLickListener(final ItemClickListener listener) {
+            textView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (listener != null)
+                        listener.onItemClick(getAdapterPosition());
+                    return true;
                 }
             });
         }
@@ -94,7 +115,22 @@ public class TreeNodeAdapter extends AdapterGroup {
         public void onBindViewHolder(ViewHolder holder, int position) {
             holder.setDepth(mDepth);
             holder.setText(mName);
-            holder.setListener(mListener);
+            holder.setClickListener(new ItemClickListener() {
+                @Override
+                public void onItemClick(int position) {
+                    if (mParentNode == null)
+                        return;
+                    mParentNode.addNode("New sibling: " + new Random().nextInt(100));
+                    notifyDataSetChanged();
+                }
+            });
+            holder.setLongCLickListener(new ItemClickListener() {
+                @Override
+                public void onItemClick(int position) {
+                    TreeNodeAdapter.this.addNode("New child: " + new Random().nextInt(100));
+                    notifyDataSetChanged();
+                }
+            });
         }
 
         @Override

@@ -12,8 +12,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.negusoft.compoundadapter.R;
-import com.negusoft.compoundadapter.adapter.HeaderAdapter;
-import com.negusoft.compoundadapter.adapter.SampleDataAdapter;
 import com.negusoft.compoundadapter.adapter.TreeNodeAdapter;
 import com.negusoft.compountadapter.recyclerview.AdapterGroup;
 import com.negusoft.compountadapter.recyclerview.AdapterPosition;
