@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import java.security.InvalidParameterException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +29,8 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private boolean mRecyclerViewAttached = false;
 
     private ViewTypeGenerator mViewTypeGenerator = new ViewTypeGenerator(1);
+
+    private AdapterGroup mParent;
 
     /**
      * Add the given adapter.
@@ -52,6 +53,11 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             throw new InvalidParameterException("The adapter is already present in the CompoundAdapter");
         mAdapterHolders.put(adapter, holder);
 
+        // Set the parent reference if the adapter is a AdapterGroup
+        if (adapter instanceof AdapterGroup) {
+            ((AdapterGroup)adapter).mParent = this;
+        }
+
         // Register the data observer if we are already attached to the RecyclerView
         if (mRecyclerViewAttached) {
             holder.registerDataObserver();
@@ -60,13 +66,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         // Update data
         mIndexingRequired = true;
         notifyDataSetChanged();
-    }
-
-    /**
-     * @return True if the adapter is part of this adapter group. False otherwise.
-     */
-    public boolean containsAdapter(RecyclerView.Adapter adapter) {
-        return mAdapterHolders.containsKey(adapter);
     }
 
     /**
@@ -86,6 +85,20 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     /**
+     * @return True if the adapter is part of this adapter group. False otherwise.
+     */
+    public boolean containsAdapter(RecyclerView.Adapter adapter) {
+        return mAdapterHolders.containsKey(adapter);
+    }
+
+    /**
+     * Returns false if this adapter is held withing another AdapterGroup. true otherwise.
+     */
+    public boolean isRootAdapter() {
+        return mParent == null;
+    }
+
+    /**
      * Returns the adapter at the given position along with the mapped position
      */
     public AdapterPosition getAdapterAtPosition(int position) {
@@ -95,6 +108,18 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         int index = holder.mapPosition(position);
 
         return new AdapterPosition(holder.adapter, index);
+    }
+
+    /**
+     * Find the root of the adapter hierarchy. It might be this instance.
+     */
+    public AdapterGroup getRootAdapter() {
+        AdapterGroup currentAdapterGroup = this;
+        while (currentAdapterGroup.mParent != null) {
+            currentAdapterGroup = currentAdapterGroup.mParent;
+        }
+
+        return currentAdapterGroup;
     }
 
     @Override
@@ -266,6 +291,13 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 return;
             dataObserver = new AdapterHolderDataObserver(this);
             adapter.registerAdapterDataObserver(dataObserver);
+
+            // Register child adapters data observers
+            if (adapter instanceof AdapterGroup) {
+                for (AdapterHolder holder : ((AdapterGroup)adapter).mAdapterHolders.values()) {
+                    holder.registerDataObserver();
+                }
+            }
         }
 
         void unregisterDataObserver() {
@@ -273,6 +305,13 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 return;
             adapter.unregisterAdapterDataObserver(dataObserver);
             dataObserver = null;
+
+            // Unregister child adapters data observers
+            if (adapter instanceof AdapterGroup) {
+                for (AdapterHolder holder : ((AdapterGroup)adapter).mAdapterHolders.values()) {
+                    holder.unregisterDataObserver();
+                }
+            }
         }
     }
 
@@ -322,35 +361,41 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         @Override
         public void onChanged() {
+            mIndexingRequired = true;
             notifyDataSetChanged();
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount) {
+            mIndexingRequired = true;
             int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeChanged(innerPositionStart, itemCount);
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
+            mIndexingRequired = true;
             int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeChanged(innerPositionStart, itemCount, payload);
         }
 
         @Override
         public void onItemRangeInserted(int positionStart, int itemCount) {
+            mIndexingRequired = true;
             int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeInserted(innerPositionStart, itemCount);
         }
 
         @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
+            mIndexingRequired = true;
             int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeRemoved(innerPositionStart, itemCount);
         }
 
         @Override
         public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
+            mIndexingRequired = true;
             int innerPositionStart = holder.mapPositionInverse(fromPosition);
             notifyItemRangeRemoved(innerPositionStart, itemCount);
         }

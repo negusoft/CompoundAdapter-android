@@ -38,15 +38,15 @@ public class AdapterGroupTreeFragment extends Fragment {
 
         mTreeNodeAdapter = new TreeNodeAdapter(getString(R.string.sample_list_title), mListener);
 
-        for (int i=1; i<=50; i++) {
+        for (int i=1; i<=1; i++) {
             TreeNodeAdapter one = mTreeNodeAdapter.addNode(String.format("%d - NODE", i));
             one.addNode(String.format("%d.1 - A", i));
             one.addNode(String.format("%d.2 - B", i));
-            one.addNode(String.format("%d.3 - C", i));
-            one.addNode(String.format("%d.4 - D", i));
-            one.addNode(String.format("%d.5 - E", i));
-            one.addNode(String.format("%d.6 - F", i));
-            one.addNode(String.format("%d.7 - G", i));
+//            one.addNode(String.format("%d.3 - C", i));
+//            one.addNode(String.format("%d.4 - D", i));
+//            one.addNode(String.format("%d.5 - E", i));
+//            one.addNode(String.format("%d.6 - F", i));
+//            one.addNode(String.format("%d.7 - G", i));
         }
 
         mAdapterGroup = new AdapterGroup();
