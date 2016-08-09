@@ -24,7 +24,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private Map<String, AdaptersByType> mAdapterTypes = new HashMap<>();
     private SparseArray<AdaptersByType> mAdapterTypesByViewType = new SparseArray<>();
 
-    private boolean mIndexingRequired = true;
     private int mTotalCount = 0;
     private boolean mRecyclerViewAttached = false;
 
@@ -56,16 +55,16 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         // Set the parent reference if the adapter is a AdapterGroup
         if (adapter instanceof AdapterGroup) {
             ((AdapterGroup)adapter).mParent = this;
+            ((AdapterGroup)adapter).mRecyclerViewAttached = mRecyclerViewAttached;
         }
 
         // Register the data observer if we are already attached to the RecyclerView
         if (mRecyclerViewAttached) {
+            updateIndexing();
             holder.registerDataObserver();
-        }
 
-        // Update data
-        mIndexingRequired = true;
-//        notifyDataSetChanged();
+            notifyItemRangeInserted(holder.startPosition, holder.count);
+        }
     }
 
     /**
@@ -76,12 +75,10 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         if (removedHolder == null)
             return;
 
-        // Clean up
-        removedHolder.unregisterDataObserver();
-
-        // Update data
-        mIndexingRequired = true;
-//        notifyDataSetChanged();
+        if (mRecyclerViewAttached) {
+            removedHolder.unregisterDataObserver();
+            notifyItemRangeRemoved(removedHolder.startPosition, removedHolder.count);
+        }
     }
 
     /**
@@ -140,6 +137,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public int getItemCount() {
+        // TODO update index only if required
         updateIndexing();
         return mTotalCount;
     }
@@ -185,23 +183,15 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
-//        mRecyclerViewAttached = true;
         setRecyclerViewAttached(this, true);
         registerAdapterDataObserver(mAdapterDataObserver);
-//        for (AdapterHolder holder : mAdapterHolders.values()) {
-//            holder.registerDataObserver();
-//        }
     }
 
     @Override
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
         super.onDetachedFromRecyclerView(recyclerView);
-//        mRecyclerViewAttached = false;
         setRecyclerViewAttached(this, false);
         unregisterAdapterDataObserver(mAdapterDataObserver);
-//        for (AdapterHolder holder : mAdapterHolders.values()) {
-//            holder.unregisterDataObserver();
-//        }
     }
 
     /** Recursive method to set the attached flags through the AdapterGroup hierarchy. */
@@ -223,10 +213,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     private void updateIndexing() {
-        if (!mIndexingRequired)
-            return;
-
-        mIndexingRequired = false;
         int counter = 0;
         for (Map.Entry<RecyclerView.Adapter, AdapterHolder> entry : mAdapterHolders.entrySet()) {
             counter += entry.getValue().updateIndex(counter);
@@ -237,37 +223,31 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private RecyclerView.AdapterDataObserver mAdapterDataObserver = new RecyclerView.AdapterDataObserver() {
         @Override
         public void onChanged() {
-            mIndexingRequired = true;
             updateIndexing();
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount) {
-            mIndexingRequired = true;
             updateIndexing();
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
-            mIndexingRequired = true;
             updateIndexing();
         }
 
         @Override
         public void onItemRangeInserted(int positionStart, int itemCount) {
-            mIndexingRequired = true;
             updateIndexing();
         }
 
         @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
-            mIndexingRequired = true;
             updateIndexing();
         }
 
         @Override
         public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-            mIndexingRequired = true;
             updateIndexing();
         }
     };
@@ -386,14 +366,12 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         @Override
         public void onChanged() {
-            mIndexingRequired = true;
             updateIndexing();
             notifyDataSetChanged();
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount) {
-            mIndexingRequired = true;
             updateIndexing();
             int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeChanged(innerPositionStart, itemCount);
@@ -401,7 +379,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
-            mIndexingRequired = true;
             updateIndexing();
             int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeChanged(innerPositionStart, itemCount, payload);
@@ -409,7 +386,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         @Override
         public void onItemRangeInserted(int positionStart, int itemCount) {
-            mIndexingRequired = true;
             updateIndexing();
             int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeInserted(innerPositionStart, itemCount);
@@ -417,7 +393,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
-            mIndexingRequired = true;
             updateIndexing();
             int innerPositionStart = holder.mapPositionInverse(positionStart);
             notifyItemRangeRemoved(innerPositionStart, itemCount);
@@ -425,7 +400,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         @Override
         public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-            mIndexingRequired = true;
             updateIndexing();
             int innerPositionStart = holder.mapPositionInverse(fromPosition);
             notifyItemRangeRemoved(innerPositionStart, itemCount);

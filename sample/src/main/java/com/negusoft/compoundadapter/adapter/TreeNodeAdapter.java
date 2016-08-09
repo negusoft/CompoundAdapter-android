@@ -2,6 +2,8 @@ package com.negusoft.compoundadapter.adapter;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.TypedValue;
@@ -31,6 +33,8 @@ public class TreeNodeAdapter extends AdapterGroup {
 
     private ItemClickListener mListener;
 
+    private boolean mSelected = false;
+
     public TreeNodeAdapter(String name, ItemClickListener listener) {
         this(0, name, listener);
     }
@@ -50,10 +54,26 @@ public class TreeNodeAdapter extends AdapterGroup {
 
         node.mParentNode = this;
 
-//        notifyItemInserted(getItemCount() - 1);
-        node.mNodeItemAdapter.notifyItemInserted(0);
+//        node.mNodeItemAdapter.notifyItemInserted(0);
 
         return node;
+    }
+
+    public void addSibling(String name) {
+        if (mParentNode == null)
+            return;
+        mParentNode.addNode(name);
+    }
+
+    public void setSelected(boolean selected) {
+        mSelected = selected;
+        mNodeItemAdapter.notifyItemChanged(0);
+    }
+
+    public void delete() {
+        if (mParentNode == null)
+            return;
+        mParentNode.removeAdapter(this);
     }
 
     public TreeNodeAdapter getParentNode() {
@@ -61,7 +81,8 @@ public class TreeNodeAdapter extends AdapterGroup {
     }
 
     public interface ItemClickListener {
-        void onItemClick(int position);
+        void onNodeSelected(TreeNodeAdapter node, TreeNodeAdapter parentNode, int index);
+        void onLeafSelected(TreeNodeAdapter parentNode, int index);
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
@@ -83,25 +104,8 @@ public class TreeNodeAdapter extends AdapterGroup {
             textView.setText(text);
         }
 
-        public void setClickListener(final ItemClickListener listener) {
-            textView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (listener != null)
-                        listener.onItemClick(getAdapterPosition());
-                }
-            });
-        }
-
-        public void setLongCLickListener(final ItemClickListener listener) {
-            textView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if (listener != null)
-                        listener.onItemClick(getAdapterPosition());
-                    return true;
-                }
-            });
+        public void setClickListener(View.OnClickListener listener) {
+            textView.setOnClickListener(listener);
         }
     }
 
@@ -117,25 +121,19 @@ public class TreeNodeAdapter extends AdapterGroup {
         }
 
         @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
+        public void onBindViewHolder(final ViewHolder holder, final int position) {
+            Context c = holder.textView.getContext();
+
             holder.setDepth(mDepth);
             holder.setText(mName);
-            holder.setClickListener(new ItemClickListener() {
+            holder.setClickListener(new View.OnClickListener() {
                 @Override
-                public void onItemClick(int position) {
-                    if (mParentNode == null)
-                        return;
-                    mParentNode.addNode("New sibling: " + new Random().nextInt(100));
-//                    notifyDataSetChanged();
+                public void onClick(View v) {
+                    mListener.onNodeSelected(TreeNodeAdapter.this, getParentNode(), position);
                 }
             });
-            holder.setLongCLickListener(new ItemClickListener() {
-                @Override
-                public void onItemClick(int position) {
-                    TreeNodeAdapter.this.addNode("New child: " + new Random().nextInt(100));
-//                    notifyDataSetChanged();
-                }
-            });
+            Drawable drawable = mSelected ? new ColorDrawable(0x33ff0000) : null;
+            holder.textView.setBackground(drawable);
         }
 
         @Override

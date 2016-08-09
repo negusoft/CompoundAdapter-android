@@ -26,16 +26,46 @@ public class AdapterGroupTreeFragment extends Fragment {
     private AdapterGroup mAdapterGroup;
     private TreeNodeAdapter mTreeNodeAdapter;
 
+    private TreeNodeAdapter mSelectedNode;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View result = inflater.inflate(R.layout.recyclerview, container, false);
+        View result = inflater.inflate(R.layout.tree_fragment, container, false);
 
         Context c = getActivity().getApplicationContext();
         mRecyclerView = ((RecyclerView)result.findViewById(R.id.recyclerview));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(c));
         getActivity().setTitle(R.string.sample_adapter_group_tree);
 
+        // Listeners
+        result.findViewById(R.id.delete).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mSelectedNode == null)
+                    return;
+                mSelectedNode.delete();
+                mSelectedNode = null;
+            }
+        });
+        result.findViewById(R.id.newChild).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mSelectedNode == null)
+                    return;
+                mSelectedNode.addNode("Name");
+            }
+        });
+        result.findViewById(R.id.newSibling).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mSelectedNode == null)
+                    return;
+                mSelectedNode.addSibling("Name");
+            }
+        });
+
+        // Initialize the adapter
         mTreeNodeAdapter = new TreeNodeAdapter(getString(R.string.sample_list_title), mListener);
 
         for (int i=1; i<=1; i++) {
@@ -58,23 +88,18 @@ public class AdapterGroupTreeFragment extends Fragment {
 
     TreeNodeAdapter.ItemClickListener mListener = new TreeNodeAdapter.ItemClickListener() {
         @Override
-        public void onItemClick(int position) {
-            // Construct as string with the relative position in each level of the hierarchy
-            String message = "Position: ";
-            AdapterGroup currentAdapter = mAdapterGroup;
-            int currentPosition = position;
-            while (true) {
-                message += "-" + currentPosition;
-                AdapterPosition adapterPosition = currentAdapter.getAdapterAtPosition(currentPosition);
-                if (adapterPosition.adapter instanceof AdapterGroup) {
-                    currentAdapter = (AdapterGroup)adapterPosition.adapter;
-                    currentPosition = adapterPosition.position;
-                } else {
-                    break;
-                }
+        public void onNodeSelected(TreeNodeAdapter node, TreeNodeAdapter parentNode, int index) {
+//            node.addNode("Name");
+            if (mSelectedNode != null) {
+                mSelectedNode.setSelected(false);
             }
+            node.setSelected(true);
+            mSelectedNode = node;
+        }
 
-            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+        @Override
+        public void onLeafSelected(TreeNodeAdapter parentNode, int index) {
+
         }
     };
 }
