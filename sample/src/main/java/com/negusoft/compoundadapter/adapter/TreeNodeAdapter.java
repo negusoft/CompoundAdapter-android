@@ -26,6 +26,7 @@ public class TreeNodeAdapter extends AdapterGroup {
     // Text to be displayed for the node
     private final String mName;
 
+    private NodeItemAdapter mNodeItemAdapter;
     private TreeNodeAdapter mParentNode;
 
     private ItemClickListener mListener;
@@ -39,7 +40,8 @@ public class TreeNodeAdapter extends AdapterGroup {
         mDepth = depth;
         mName = name;
         mListener = listener;
-        addAdapter(new NodeItemAdapter());
+        mNodeItemAdapter = new NodeItemAdapter();
+        addAdapter(mNodeItemAdapter);
     }
 
     public TreeNodeAdapter addNode(String name) {
@@ -47,6 +49,9 @@ public class TreeNodeAdapter extends AdapterGroup {
         addAdapter(node);
 
         node.mParentNode = this;
+
+//        notifyItemInserted(getItemCount() - 1);
+        node.mNodeItemAdapter.notifyItemInserted(0);
 
         return node;
     }
@@ -121,14 +126,14 @@ public class TreeNodeAdapter extends AdapterGroup {
                     if (mParentNode == null)
                         return;
                     mParentNode.addNode("New sibling: " + new Random().nextInt(100));
-                    notifyDataSetChanged();
+//                    notifyDataSetChanged();
                 }
             });
             holder.setLongCLickListener(new ItemClickListener() {
                 @Override
                 public void onItemClick(int position) {
                     TreeNodeAdapter.this.addNode("New child: " + new Random().nextInt(100));
-                    notifyDataSetChanged();
+//                    notifyDataSetChanged();
                 }
             });
         }
