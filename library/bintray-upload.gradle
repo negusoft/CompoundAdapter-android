@@ -1,0 +1,94 @@
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+ext {
+    versionName = android.defaultConfig.versionName
+
+    projectName = 'CompoundAdapter-android'
+    projectDescription = 'Android library that provides a way to define a RecyclerView.Adapter out of subadapters (AdapterGroup).'
+
+    siteUrl = 'https://github.com/negusoft/CompoundAdapter-android'
+    gitUrl = 'https://github.com/negusoft/CompoundAdapter-android.git'
+    issuesUrl = 'https://github.com/negusoft/CompoundAdapter-android/issues'
+}
+
+version = versionName
+group = 'com.negusoft.compoundadapter'
+
+bintray {
+    user = System.getenv('BINTRAY_USERNAME') ?: BINTRAY_USERNAME
+    key =  System.getenv('BINTRAY_API_KEY') ?: BINTRAY_API_KEY
+
+    configurations = ['archives'] //When uploading configuration files
+    pkg {
+        repo = 'maven'
+        userOrg = 'negusoft'
+        name = projectName
+        desc = projectDescription
+        websiteUrl = siteUrl
+        issueTrackerUrl = issuesUrl
+        vcsUrl = gitUrl
+        licenses = ['Apache-2.0']
+        labels = ['android', 'RecyclerView', 'adapter', 'compound', 'AdapterGroup']
+        publicDownloadNumbers = true
+        version {
+            name = versionName
+            desc = 'v' + versionName
+        }
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+
+                // Add your description here
+                name projectName
+                url siteUrl
+
+                // Set your license
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'blurkidi'
+                        name 'Borja Lopez Urkidi'
+                        email 'blurkidi@negusoft.com'
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
