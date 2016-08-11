@@ -44,8 +44,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     private ViewTypeGenerator mViewTypeGenerator = new ViewTypeGenerator(1);
 
-    private AdapterGroup mParent;
-
     /**
      * Add the given adapter.
      */
@@ -69,7 +67,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         // Set the parent reference if the adapter is a AdapterGroup
         if (adapter instanceof AdapterGroup) {
-            ((AdapterGroup)adapter).mParent = this;
             ((AdapterGroup)adapter).mRecyclerViewAttached = mRecyclerViewAttached;
         }
 
@@ -104,13 +101,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     /**
-     * Returns false if this adapter is held withing another AdapterGroup. true otherwise.
-     */
-    public boolean isRootAdapter() {
-        return mParent == null;
-    }
-
-    /**
      * Returns the adapter at the given position along with the mapped position
      */
     public AdapterPosition getAdapterAtPosition(int position) {
@@ -120,18 +110,6 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         int index = holder.mapPosition(position);
 
         return new AdapterPosition(holder.adapter, index);
-    }
-
-    /**
-     * Find the root of the adapter hierarchy. It might be this instance.
-     */
-    public AdapterGroup getRootAdapter() {
-        AdapterGroup currentAdapterGroup = this;
-        while (currentAdapterGroup.mParent != null) {
-            currentAdapterGroup = currentAdapterGroup.mParent;
-        }
-
-        return currentAdapterGroup;
     }
 
     @Override
