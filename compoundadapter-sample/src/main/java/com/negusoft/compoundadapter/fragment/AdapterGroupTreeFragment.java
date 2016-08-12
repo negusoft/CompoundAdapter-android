@@ -16,7 +16,12 @@ import com.negusoft.compoundadapter.adapter.TreeNodeAdapter;
 import com.negusoft.compountadapter.recyclerview.AdapterGroup;
 import com.negusoft.compountadapter.recyclerview.AdapterPosition;
 
+import java.util.Random;
+
 public class AdapterGroupTreeFragment extends Fragment {
+
+    private static final int INITIAL_NODE_COUNT = 2;
+    private static final int INITIAL_NODE_CHILDREN_COUNT = 3;
 
     public static AdapterGroupTreeFragment newInstance() {
         return new AdapterGroupTreeFragment();
@@ -53,7 +58,7 @@ public class AdapterGroupTreeFragment extends Fragment {
             public void onClick(View v) {
                 if (mSelectedNode == null)
                     return;
-                mSelectedNode.addNode("Name");
+                mSelectedNode.addNode(getRandomNodeName());
             }
         });
         result.findViewById(R.id.newSibling).setOnClickListener(new View.OnClickListener() {
@@ -61,22 +66,18 @@ public class AdapterGroupTreeFragment extends Fragment {
             public void onClick(View v) {
                 if (mSelectedNode == null)
                     return;
-                mSelectedNode.addSibling("Name");
+                mSelectedNode.addSibling(getRandomNodeName());
             }
         });
 
         // Initialize the adapter
         mTreeNodeAdapter = new TreeNodeAdapter(getString(R.string.sample_list_title), mListener);
 
-        for (int i=1; i<=1; i++) {
-            TreeNodeAdapter one = mTreeNodeAdapter.addNode(String.format("%d - NODE", i));
-            one.addNode(String.format("%d.1 - A", i));
-            one.addNode(String.format("%d.2 - B", i));
-//            one.addNode(String.format("%d.3 - C", i));
-//            one.addNode(String.format("%d.4 - D", i));
-//            one.addNode(String.format("%d.5 - E", i));
-//            one.addNode(String.format("%d.6 - F", i));
-//            one.addNode(String.format("%d.7 - G", i));
+        for (int i=0; i<INITIAL_NODE_COUNT; i++) {
+            TreeNodeAdapter node = mTreeNodeAdapter.addNode(getRandomNodeName());
+            for (int j=0; j<INITIAL_NODE_CHILDREN_COUNT; j++) {
+                node.addNode(getRandomNodeName());
+            }
         }
 
         mAdapterGroup = new AdapterGroup();
@@ -86,20 +87,18 @@ public class AdapterGroupTreeFragment extends Fragment {
         return result;
     }
 
+    private String getRandomNodeName() {
+        return String.format("Item %d", new Random().nextInt(100));
+    }
+
     TreeNodeAdapter.ItemClickListener mListener = new TreeNodeAdapter.ItemClickListener() {
         @Override
         public void onNodeSelected(TreeNodeAdapter node, TreeNodeAdapter parentNode, int index) {
-//            node.addNode("Name");
             if (mSelectedNode != null) {
                 mSelectedNode.setSelected(false);
             }
             node.setSelected(true);
             mSelectedNode = node;
-        }
-
-        @Override
-        public void onLeafSelected(TreeNodeAdapter parentNode, int index) {
-
         }
     };
 }

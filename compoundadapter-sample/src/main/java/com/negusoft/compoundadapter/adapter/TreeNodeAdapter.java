@@ -54,8 +54,6 @@ public class TreeNodeAdapter extends AdapterGroup {
 
         node.mParentNode = this;
 
-//        node.mNodeItemAdapter.notifyItemInserted(0);
-
         return node;
     }
 
@@ -82,15 +80,16 @@ public class TreeNodeAdapter extends AdapterGroup {
 
     public interface ItemClickListener {
         void onNodeSelected(TreeNodeAdapter node, TreeNodeAdapter parentNode, int index);
-        void onLeafSelected(TreeNodeAdapter parentNode, int index);
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
 
+        View selectableView;
         TextView textView;
 
         public ViewHolder(View itemView) {
             super(itemView);
+            selectableView = itemView.findViewById(R.id.selectable);
             textView = (TextView) itemView.findViewById(android.R.id.text1);
         }
 
@@ -115,8 +114,6 @@ public class TreeNodeAdapter extends AdapterGroup {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
             View view = inflater.inflate(R.layout.item_content, parent, false);
 
-            Log.d(NodeItemAdapter.class.toString(), "NodeItemAdapter created.");
-
             return new ViewHolder(view);
         }
 
@@ -132,8 +129,11 @@ public class TreeNodeAdapter extends AdapterGroup {
                     mListener.onNodeSelected(TreeNodeAdapter.this, getParentNode(), position);
                 }
             });
-            Drawable drawable = mSelected ? new ColorDrawable(0x33ff0000) : null;
-            holder.textView.setBackground(drawable);
+//            Drawable drawable = mSelected ? new ColorDrawable(0x33ff0000) : null;
+//            holder.textView.setBackground(drawable);
+//            holder.textView.getBackground().
+//            holder.textView.setChecked(true);
+            holder.selectableView.setSelected(mSelected);
         }
 
         @Override
