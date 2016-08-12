@@ -22,9 +22,11 @@ import android.util.SparseIntArray;
 import android.view.ViewGroup;
 
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -34,10 +36,12 @@ import java.util.WeakHashMap;
  */
 public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private LinkedHashMap<RecyclerView.Adapter, AdapterHolder> mAdapterHolders = new LinkedHashMap<>();
+    // A list with the adapter holder and a map for quick access by adapter
+    private final List<AdapterHolder> mAdapterHolderList = new ArrayList<>(3);
+    private final Map<RecyclerView.Adapter, AdapterHolder> mAdapterHolderMap = new HashMap<>(3);
 
-    private Map<String, AdaptersByType> mAdapterTypes = new HashMap<>();
-    private SparseArray<AdaptersByType> mAdapterTypesByViewType = new SparseArray<>();
+    private final Map<String, AdaptersByType> mAdapterTypes = new HashMap<>();
+    private final SparseArray<AdaptersByType> mAdapterTypesByViewType = new SparseArray<>();
 
     private int mTotalCount = 0;
     private boolean mRecyclerViewAttached = false;
@@ -45,25 +49,45 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private ViewTypeGenerator mViewTypeGenerator = new ViewTypeGenerator(1);
 
     /**
-     * Add the given adapter.
+     * Add the given adapter at the end.
      */
     public void addAdapter(RecyclerView.Adapter adapter) {
-        addAdapter(adapter, null);
+        addAdapter(mAdapterHolderList.size(), adapter, null);
     }
 
     /**
      * Add the given adapter.
+     * @param location The index where the adapter will be inserted.
+     */
+    public void addAdapter(int location, RecyclerView.Adapter adapter) {
+        addAdapter(location, adapter, null);
+    }
+
+    /**
+     * Add the given adapter at the end.
      * @param adapterType Adapters of the same type reuse each others ViewHolders. By default,
      *                    adapters are grouped by class.
      */
     public void addAdapter(RecyclerView.Adapter adapter, @Nullable String adapterType) {
+        addAdapter(mAdapterHolderList.size(), adapter, adapterType);
+    }
+
+    /**
+     * Add the given adapter.
+     * @param location The index where the adapter will be inserted.
+     * @param adapterType Adapters of the same type reuse each others ViewHolders. By default,
+     *                    adapters are grouped by class.
+     */
+    public void addAdapter(int location, RecyclerView.Adapter adapter, @Nullable String adapterType) {
         if (adapterType == null)
             adapterType = adapter.getClass().toString();
 
         AdapterHolder holder = new AdapterHolder(adapter, adapterType);
-        if (mAdapterHolders.containsKey(adapter))
+        if (mAdapterHolderMap.containsKey(adapter))
             throw new InvalidParameterException("The adapter is already present in the CompoundAdapter");
-        mAdapterHolders.put(adapter, holder);
+
+        mAdapterHolderList.add(location, holder);
+        mAdapterHolderMap.put(adapter, holder);
 
         // Set the parent reference if the adapter is a AdapterGroup
         if (adapter instanceof AdapterGroup) {
@@ -83,9 +107,11 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
      * Remove the given adapter.
      */
     public void removeAdapter(RecyclerView.Adapter adapter) {
-        AdapterHolder removedHolder = mAdapterHolders.remove(adapter);
+        AdapterHolder removedHolder = mAdapterHolderMap.remove(adapter);
         if (removedHolder == null)
             return;
+
+        mAdapterHolderList.remove(removedHolder);
 
         if (mRecyclerViewAttached) {
             removedHolder.unregisterDataObserver();
@@ -94,19 +120,48 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     /**
+     * Returns the adapter at the given index.
+     */
+    public RecyclerView.Adapter getAdapter(int location) {
+        return mAdapterHolderList.get(location).adapter;
+    }
+
+    /**
+     * Returns a list of all the adapters that compose the AdapterGroup.
+     */
+    public List<RecyclerView.Adapter> getAdapters() {
+        List<RecyclerView.Adapter> result = new ArrayList<>();
+        for (AdapterHolder holder : mAdapterHolderList) {
+            result.add(holder.adapter);
+        }
+        return result;
+    }
+
+    /**
      * @return True if the adapter is part of this adapter group. False otherwise.
      */
     public boolean containsAdapter(RecyclerView.Adapter adapter) {
-        return mAdapterHolders.containsKey(adapter);
+        return mAdapterHolderMap.containsKey(adapter);
+    }
+
+    /**
+     * @return The index of the given adapter or -1 if it was not found.
+     */
+    public int indexOfAdapter(RecyclerView.Adapter adapter) {
+        AdapterHolder holder = mAdapterHolderMap.get(adapter);
+        if (holder == null)
+            return -1;
+
+        return mAdapterHolderList.indexOf(holder);
     }
 
     /**
      * Returns the adapter at the given position along with the mapped position
      */
-    public AdapterPosition getAdapterAtPosition(int position) {
+    public AdapterPosition getAdapterAtItemPosition(int position) {
         updateIndexing();
 
-        AdapterHolder holder = getAdapterForIndex(position);
+        AdapterHolder holder = getAdapterHolderForIndex(position);
         int index = holder.mapPosition(position);
 
         return new AdapterPosition(holder.adapter, index);
@@ -123,7 +178,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        AdapterHolder adapterHolder = getAdapterForIndex(position);
+        AdapterHolder adapterHolder = getAdapterHolderForIndex(position);
         int innerPosition = adapterHolder.mapPosition(position);
         adapterHolder.adapter.onBindViewHolder(holder, innerPosition);
     }
@@ -141,7 +196,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     private int getItemViewType(int position, Map<String, AdaptersByType> adapterTypes, SparseArray<AdaptersByType> adapterTypesByViewType, ViewTypeGenerator viewTypeGenerator) {
-        AdapterHolder adapterHolder = getAdapterForIndex(position);
+        AdapterHolder adapterHolder = getAdapterHolderForIndex(position);
         int innerPosition = adapterHolder.mapPosition(position);
 
         // IF the adapter is AdapterGroup -> dive into the sub-adapters
@@ -168,7 +223,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public long getItemId(int position) {
-        AdapterHolder adapterHolder = getAdapterForIndex(position);
+        AdapterHolder adapterHolder = getAdapterHolderForIndex(position);
         int innerPosition = adapterHolder.mapPosition(position);
         return adapterHolder.adapter.getItemId(innerPosition);
     }
@@ -190,7 +245,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     /** Recursive method to set the attached flags through the AdapterGroup hierarchy. */
     private void setRecyclerViewAttached(AdapterGroup adapterGroup, boolean attached) {
         adapterGroup.mRecyclerViewAttached = attached;
-        for (AdapterHolder holder : adapterGroup.mAdapterHolders.values()) {
+        for (AdapterHolder holder : adapterGroup.mAdapterHolderList) {
             // Register/Unregister observers
             if (attached) {
                 holder.registerDataObserver();
@@ -207,8 +262,8 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     private void updateIndexing() {
         int counter = 0;
-        for (Map.Entry<RecyclerView.Adapter, AdapterHolder> entry : mAdapterHolders.entrySet()) {
-            counter += entry.getValue().updateIndex(counter);
+        for (AdapterHolder holder : mAdapterHolderList) {
+            counter += holder.updateIndex(counter);
         }
         mTotalCount = counter;
     }
@@ -245,8 +300,8 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     };
 
-    private AdapterHolder getAdapterForIndex(int index) {
-        for (AdapterHolder holder : mAdapterHolders.values()) {
+    private AdapterHolder getAdapterHolderForIndex(int index) {
+        for (AdapterHolder holder : mAdapterHolderList) {
             int mapped = holder.mapPosition(index);
             if (mapped >= 0 && mapped < holder.count)
                 return holder;
@@ -292,7 +347,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
             // Register child adapters data observers
             if (adapter instanceof AdapterGroup) {
-                for (AdapterHolder holder : ((AdapterGroup)adapter).mAdapterHolders.values()) {
+                for (AdapterHolder holder : ((AdapterGroup)adapter).mAdapterHolderList) {
                     holder.registerDataObserver();
                 }
             }
@@ -306,7 +361,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
             // Unregister child adapters data observers
             if (adapter instanceof AdapterGroup) {
-                for (AdapterHolder holder : ((AdapterGroup)adapter).mAdapterHolders.values()) {
+                for (AdapterHolder holder : ((AdapterGroup)adapter).mAdapterHolderList) {
                     holder.unregisterDataObserver();
                 }
             }
