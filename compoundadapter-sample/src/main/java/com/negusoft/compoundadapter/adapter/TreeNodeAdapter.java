@@ -129,10 +129,6 @@ public class TreeNodeAdapter extends AdapterGroup {
                     mListener.onNodeSelected(TreeNodeAdapter.this, getParentNode(), position);
                 }
             });
-//            Drawable drawable = mSelected ? new ColorDrawable(0x33ff0000) : null;
-//            holder.textView.setBackground(drawable);
-//            holder.textView.getBackground().
-//            holder.textView.setChecked(true);
             holder.selectableView.setSelected(mSelected);
         }
 

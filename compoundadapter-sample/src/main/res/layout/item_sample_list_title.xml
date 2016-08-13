@@ -10,4 +10,5 @@
     android:paddingEnd="?android:attr/listPreferredItemPaddingEnd"
     android:paddingTop="8dp"
     android:paddingBottom="8dp"
-    android:background="#33000000"/>
+    android:background="#33000000"
+    android:text="@string/sample_list_title"/>

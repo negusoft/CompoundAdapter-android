@@ -7,18 +7,15 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.negusoft.compoundadapter.R;
-import com.negusoft.compoundadapter.adapter.HeaderAdapter;
 import com.negusoft.compoundadapter.adapter.StaticDataAdapter;
-import com.negusoft.compoundadapter.data.Samples;
 import com.negusoft.compountadapter.recyclerview.AdapterGroup;
+import com.negusoft.compountadapter.recyclerview.SingleAdapter;
 
 /**
  * Simple AdapterGroup that contains a header with a single element and a list of static data.
@@ -32,7 +29,7 @@ public class AdapterGroupWithHeaderFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private AdapterGroup mAdapterGroup;
     private StaticDataAdapter mSampleDataAdapter;
-    private HeaderAdapter mHeaderAdapter;
+    private SingleAdapter mHeaderAdapter;
 
     @Nullable
     @Override
@@ -44,7 +41,8 @@ public class AdapterGroupWithHeaderFragment extends Fragment {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(c));
         getActivity().setTitle(R.string.sample_adapter_group_with_header);
 
-        mHeaderAdapter = new HeaderAdapter(getString(R.string.sample_list_title));
+        mHeaderAdapter = SingleAdapter.create(R.layout.item_sample_list_title);
+
         mSampleDataAdapter = new StaticDataAdapter();
         mSampleDataAdapter.setItemSelectedListener(new StaticDataAdapter.ItemSelectedListener() {
             @Override

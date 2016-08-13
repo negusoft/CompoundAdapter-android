@@ -15,9 +15,9 @@ import android.view.ViewGroup;
 
 import com.negusoft.compoundadapter.R;
 import com.negusoft.compoundadapter.adapter.DynamicDataAdapter;
-import com.negusoft.compoundadapter.adapter.HeaderAdapter;
 import com.negusoft.compoundadapter.data.Samples;
 import com.negusoft.compountadapter.recyclerview.AdapterGroup;
+import com.negusoft.compountadapter.recyclerview.SingleAdapter;
 
 /**
  * Display an adapter to which items can be added and remove. It is wrapped in a AdapterGroup along
@@ -31,8 +31,8 @@ public class AdapterGroupWithChangingData extends Fragment {
 
     private RecyclerView mRecyclerView;
     private AdapterGroup mAdapterGroup;
+    private SingleAdapter mHeaderAdapter;
     private DynamicDataAdapter mDynamicDataAdapter;
-    private HeaderAdapter mHeaderAdapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,7 +50,8 @@ public class AdapterGroupWithChangingData extends Fragment {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(c));
         getActivity().setTitle(R.string.sample_adapter_group_with_header);
 
-        mHeaderAdapter = new HeaderAdapter(getString(R.string.sample_list_title));
+        mHeaderAdapter = SingleAdapter.create(R.layout.item_sample_list_title);
+
         mDynamicDataAdapter = new DynamicDataAdapter();
         mDynamicDataAdapter.setItemSelectedListener(new DynamicDataAdapter.ItemSelectedListener() {
             @Override
