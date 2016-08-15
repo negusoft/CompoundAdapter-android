@@ -24,11 +24,13 @@ import android.view.ViewGroup;
 /**
  * RecyclerView.Adapter with one single configurable element.
  */
-public class SingleAdapter<T extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<T> {
+public class SingleAdapter<T extends RecyclerView.ViewHolder>
+        extends RecyclerView.Adapter<T>
+        implements AdapterGroup.AdapterTypeProvider {
 
     /** Delegate interfaces, composed of the creator and binder roles. */
     public interface Delegate<T extends RecyclerView.ViewHolder>
-        extends  Creator<T>, Binder<T> {
+        extends Creator<T>, Binder<T> {
     }
     public interface Creator<T extends RecyclerView.ViewHolder> {
         T createViewHolder(ViewGroup parent);
@@ -51,7 +53,7 @@ public class SingleAdapter<T extends RecyclerView.ViewHolder> extends RecyclerVi
     }
 
     public static SingleAdapter create(final @LayoutRes int layout, final Binder<RecyclerView.ViewHolder> binder) {
-        return new SingleAdapter<ViewHolder>(new Delegate<ViewHolder>() {
+        return new SingleAdapter<>(new Delegate<ViewHolder>() {
             @Override
             public ViewHolder createViewHolder(ViewGroup parent) {
                 LayoutInflater inflater = LayoutInflater.from(parent.getContext());
@@ -102,6 +104,11 @@ public class SingleAdapter<T extends RecyclerView.ViewHolder> extends RecyclerVi
     @Override
     public int getItemCount() {
         return 1;
+    }
+
+    @Override
+    public String getAdapterType() {
+        return mCreator.getClass().toString();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

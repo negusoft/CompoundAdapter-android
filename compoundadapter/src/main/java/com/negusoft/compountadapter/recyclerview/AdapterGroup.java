@@ -25,7 +25,6 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +34,13 @@ import java.util.WeakHashMap;
  * An adapter made out of adapters.
  */
 public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    /**
+     * Can be implemented by RecyclerView.Adapters to let the AdapterGroup know about its adapter type identifier.
+     */
+    public interface AdapterTypeProvider {
+        String getAdapterType();
+    }
 
     // A list with the adapter holder and a map for quick access by adapter
     private final List<AdapterHolder> mAdapterHolderList = new ArrayList<>(3);
@@ -76,11 +82,13 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
      * Add the given adapter.
      * @param location The index where the adapter will be inserted.
      * @param adapterType Adapters of the same type reuse each others ViewHolders. By default,
-     *                    adapters are grouped by class.
+     *                    adapters are grouped by class. If it is null and the adapter implements
+     *                    AdapterTypeProvider, the getAdapterType() value is used.
      */
     public void addAdapter(int location, RecyclerView.Adapter adapter, @Nullable String adapterType) {
-        if (adapterType == null)
-            adapterType = adapter.getClass().toString();
+        if (adapterType == null) {
+            adapterType = getDefaultAdapterType(adapter);
+        }
 
         AdapterHolder holder = new AdapterHolder(adapter, adapterType);
         if (mAdapterHolderMap.containsKey(adapter))
@@ -101,6 +109,16 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
             notifyItemRangeInserted(holder.startPosition, holder.count);
         }
+    }
+
+    /** Take the adapter type from AdapterTypeProvider or use the default */
+    private String getDefaultAdapterType(RecyclerView.Adapter adapter) {
+        if (adapter instanceof AdapterTypeProvider) {
+            String result = ((AdapterTypeProvider)adapter).getAdapterType();
+            if (result != null)
+                return result;
+        }
+        return adapter.getClass().toString();
     }
 
     /**
