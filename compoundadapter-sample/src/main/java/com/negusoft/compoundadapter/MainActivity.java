@@ -43,6 +43,13 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        findViewById(R.id.adapterGroupWithStableIds).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = SampleActivity.makeIntent(MainActivity.this, SampleActivity.SampleType.ADAPTER_GROUP_WITH_STABLE_IDS);
+                startActivity(intent);
+            }
+        });
         findViewById(R.id.adapterGroupTree).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

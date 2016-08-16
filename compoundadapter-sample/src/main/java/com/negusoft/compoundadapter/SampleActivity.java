@@ -14,6 +14,7 @@ import android.view.View;
 import com.negusoft.compoundadapter.fragment.AdapterGroupTreeFragment;
 import com.negusoft.compoundadapter.fragment.AdapterGroupWithChangingData;
 import com.negusoft.compoundadapter.fragment.AdapterGroupWithHeaderFragment;
+import com.negusoft.compoundadapter.fragment.AdapterGroupWithStableIds;
 import com.negusoft.compoundadapter.fragment.MainListFragment;
 
 public class SampleActivity extends AppCompatActivity {
@@ -23,6 +24,7 @@ public class SampleActivity extends AppCompatActivity {
     public enum SampleType {
         ADAPTER_GROUP_WITH_HEADER,
         ADAPTER_GROUP_WITH_CHANGING_DATA,
+        ADAPTER_GROUP_WITH_STABLE_IDS,
         ADAPTER_GROUP_TREE
     }
 
@@ -65,6 +67,9 @@ public class SampleActivity extends AppCompatActivity {
                 break;
             case ADAPTER_GROUP_WITH_CHANGING_DATA:
                 addFragment(AdapterGroupWithChangingData.newInstance());
+                break;
+            case ADAPTER_GROUP_WITH_STABLE_IDS:
+                addFragment(AdapterGroupWithStableIds.newInstance());
                 break;
             case ADAPTER_GROUP_TREE:
                 addFragment(AdapterGroupTreeFragment.newInstance());

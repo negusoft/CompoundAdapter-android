@@ -76,18 +76,30 @@ public class DynamicDataAdapter extends RecyclerView.Adapter<DynamicDataAdapter.
     }
 
     public Item addItem(String value) {
+        return addItem(value, true);
+    }
+
+    public Item addItem(String value, boolean notify) {
         Item item = new Item(value);
         mItems.add(item);
-        notifyItemInserted(mItems.size() - 1);
+        if (notify) {
+            notifyItemInserted(mItems.size() - 1);
+        }
 
         return item;
     }
 
     public void removeItem(Item item) {
+        removeItem(item, true);
+    }
+
+    public void removeItem(Item item, boolean notify) {
         int index = mItems.indexOf(item);
         if (index >= 0) {
             mItems.remove(index);
-            notifyItemRemoved(index);
+            if (notify) {
+                notifyItemRemoved(index);
+            }
         }
     }
 
@@ -111,5 +123,10 @@ public class DynamicDataAdapter extends RecyclerView.Adapter<DynamicDataAdapter.
     @Override
     public int getItemCount() {
         return mItems.size();
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return mItems.get(position).hashCode();
     }
 }

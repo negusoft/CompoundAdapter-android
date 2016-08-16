@@ -8,5 +8,6 @@
     <!-- Sample types -->
     <string name="sample_adapter_group_with_header">AdapterGroup with header</string>
     <string name="sample_adapter_group_with_changing_data">AdapterGroup with changing data</string>
+    <string name="sample_adapter_group_with_stable_ids">AdapterGroup with stable IDs</string>
     <string name="sample_adapter_group_tree">AdapterGroup tree</string>
 </resources>
