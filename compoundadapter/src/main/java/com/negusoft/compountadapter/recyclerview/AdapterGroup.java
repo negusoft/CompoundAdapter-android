@@ -27,7 +27,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.WeakHashMap;
 
 /**
@@ -45,6 +47,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     // A list with the adapter holder and a map for quick access by adapter
     private final List<AdapterHolder> mAdapterHolderList = new ArrayList<>(3);
     private final Map<RecyclerView.Adapter, AdapterHolder> mAdapterHolderMap = new HashMap<>(3);
+    private final NavigableMap<Integer, AdapterHolder> mAdapterHoldersByPosition = new TreeMap<>();
 
     private final Map<String, AdaptersByType> mAdapterTypes = new HashMap<>();
     private final SparseArray<AdaptersByType> mAdapterTypesByViewType = new SparseArray<>();
@@ -279,8 +282,10 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     private void updateIndexing() {
+        mAdapterHoldersByPosition.clear();
         int counter = 0;
         for (AdapterHolder holder : mAdapterHolderList) {
+            mAdapterHoldersByPosition.put(counter, holder);
             counter += holder.updateIndex(counter);
         }
         mTotalCount = counter;
@@ -319,12 +324,7 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     };
 
     private AdapterHolder getAdapterHolderForIndex(int index) {
-        for (AdapterHolder holder : mAdapterHolderList) {
-            int mapped = holder.mapPosition(index);
-            if (mapped >= 0 && mapped < holder.count)
-                return holder;
-        }
-        throw new IndexOutOfBoundsException("Failed to map the index to an inner adapter");
+        return mAdapterHoldersByPosition.floorEntry(index).getValue();
     }
 
     /** Represents an inner Adapter along info related to it. */
