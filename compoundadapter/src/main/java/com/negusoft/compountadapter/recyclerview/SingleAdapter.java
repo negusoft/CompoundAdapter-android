@@ -73,12 +73,15 @@ public class SingleAdapter<T extends RecyclerView.ViewHolder>
     private final Creator<T> mCreator;
     private final Binder<T> mBinder;
 
+    private long mItemId;
+
     /**
      * New instance with a delegate that creates and binds the ViewHolder
      */
     public SingleAdapter(Delegate<T> delegate) {
         mCreator = delegate;
         mBinder = delegate;
+        mItemId = RecyclerView.NO_ID;
     }
 
     /**
@@ -87,6 +90,17 @@ public class SingleAdapter<T extends RecyclerView.ViewHolder>
     public SingleAdapter(Creator<T> creator, Binder<T> binder) {
         mCreator = creator;
         mBinder = binder;
+        mItemId = RecyclerView.NO_ID;
+    }
+
+    /** Get the item ID used for RecyclerView.Adapter.getItemId() */
+    public long getItemId() {
+        return mItemId;
+    }
+
+    /** Set the item ID used for RecyclerView.Adapter.getItemId() */
+    public void setItemId(long itemId) {
+        mItemId = itemId;
     }
 
     @Override
@@ -104,6 +118,11 @@ public class SingleAdapter<T extends RecyclerView.ViewHolder>
     @Override
     public int getItemCount() {
         return 1;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return mItemId;
     }
 
     @Override
