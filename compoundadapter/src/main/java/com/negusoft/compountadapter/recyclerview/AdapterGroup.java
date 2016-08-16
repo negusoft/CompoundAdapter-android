@@ -468,7 +468,10 @@ public class AdapterGroup extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
             updateIndexing();
             int innerPositionStart = holder.mapPositionInverse(fromPosition);
-            notifyItemRangeRemoved(innerPositionStart, itemCount);
+            // There is no notifyItemRangeMoved method at the moment so send individual events
+            for (int i=0; i<itemCount; i++) {
+                notifyItemMoved(innerPositionStart + i, toPosition + i);
+            }
         }
     }
 
