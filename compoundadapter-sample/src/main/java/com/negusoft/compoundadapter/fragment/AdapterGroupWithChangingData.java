@@ -48,7 +48,7 @@ public class AdapterGroupWithChangingData extends Fragment {
         Context c = getActivity().getApplicationContext();
         mRecyclerView = ((RecyclerView)result.findViewById(R.id.recyclerview));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(c));
-        getActivity().setTitle(R.string.sample_adapter_group_with_header);
+        getActivity().setTitle(R.string.sample_adapter_group_with_changing_data);
 
         mHeaderAdapter = SingleAdapter.create(R.layout.item_sample_list_title);
 
