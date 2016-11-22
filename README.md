@@ -55,12 +55,12 @@ A good thing about RecyclerViews is that they reuse ViewHolder to optimize perfo
 By default, adapters are grouped by their java class. If you want more control on this, you may add them to the AdapterGroup by using addAdapter(adapter, type). This way, you can make adapters of different type share ViewHolders. Or the oposite, avoid that two adapters share ViewHolders.
 
 
-Updateing Data
+Updating Data
 ==============
 
 You can update the data with the usual methods: notifyDataSetChanged(), notifyItemInserted()... You can use this methods on the AdapterGroup directly or call the child Adapters.
 
-Just make sure that the positions passed to the notifyItemXxx() method are relative to that specific adapter. That is, to remove the fist item in the Second adapter might be done like this:
+Just make sure that the positions passed to the notifyItemXxx() method are relative to that specific adapter. That is, removing the first item in the Second adapter might be done like this:
 
 ``` java
 // Remove the first item of secondAdapter
